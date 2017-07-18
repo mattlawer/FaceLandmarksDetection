@@ -66,7 +66,11 @@ class ViewController: UIViewController {
 extension ViewController: AVCaptureVideoDataOutputSampleBufferDelegate {
 
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
-        if let image = UIImage(sampleBuffer: sampleBuffer)?.flipped() {
+
+        // Scale image to process it faster
+        let maxSize = CGSize(width: 1024, height: 1024)
+
+        if let image = UIImage(sampleBuffer: sampleBuffer)?.flipped()?.imageWithAspectFit(size: maxSize) {
             faceDetector.highlightFaces(for: image) { (resultImage) in
                 DispatchQueue.main.async {
                     self.imageView?.image = resultImage

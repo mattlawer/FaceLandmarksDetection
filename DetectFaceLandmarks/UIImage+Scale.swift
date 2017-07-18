@@ -54,4 +54,33 @@ extension UIImage {
         UIGraphicsEndImageContext()
         return retVal
     }
+
+    func imageWithAspectFit(size:CGSize) -> UIImage? {
+        let aspectFitSize = self.getAspectFitSize(destination: size)
+        let resizedImage = self.resize(size: aspectFitSize)
+        return resizedImage
+    }
+
+    private func getAspectFitSize(destination dst:CGSize) -> CGSize {
+        var result = CGSize.zero
+        var scaleRatio = CGPoint()
+
+        if (dst.width != 0) {scaleRatio.x = self.size.width / dst.width}
+        if (dst.height != 0) {scaleRatio.y = self.size.height / dst.height}
+        let scaleFactor = max(scaleRatio.x, scaleRatio.y)
+
+        result.width  = scaleRatio.x * dst.width / scaleFactor
+        result.height = scaleRatio.y * dst.height / scaleFactor
+        return result
+    }
+
+    func resize(size:CGSize) -> UIImage? {
+        let imageRect = CGRect(origin: .zero, size: size);
+
+        UIGraphicsBeginImageContextWithOptions(size, false, 1.0);
+        self.draw(in: imageRect)
+        let scaled = UIGraphicsGetImageFromCurrentImageContext();
+        UIGraphicsEndImageContext();
+        return scaled
+    }
 }
