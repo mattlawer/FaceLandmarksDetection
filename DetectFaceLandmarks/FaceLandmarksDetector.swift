@@ -55,21 +55,35 @@ class FaceLandmarksDetector {
 
 
         //draw bound rect
-        var fillColor = UIColor.green
-        fillColor.setStroke()
+        context.setStrokeColor(UIColor.green.cgColor)
         context.addRect(CGRect(x: boundingRect.origin.x * source.size.width, y:boundingRect.origin.y * source.size.height, width: rectWidth, height: rectHeight))
         context.drawPath(using: CGPathDrawingMode.stroke)
 
         //draw overlay
-        context.setLineWidth(4.0)
+        context.setLineWidth(1.0)
 
         func drawFeature(_ feature: VNFaceLandmarkRegion2D, color: CGColor, close: Bool = false) {
             context.setStrokeColor(color)
+            context.setFillColor(color)
             var points: [CGPoint] = []
             for i in 0..<feature.pointCount {
                 let point = feature.point(at: i)
                 let p = CGPoint(x: CGFloat(point.x), y: CGFloat(point.y))
                 points.append(p)
+
+                // Draw DEBUG numbers
+                let textFontAttributes = [
+                    NSAttributedStringKey.font: UIFont.systemFont(ofSize: 16),
+                    NSAttributedStringKey.foregroundColor: UIColor.white
+                ]
+                context.saveGState()
+                // rotate to draw numbers
+                context.translateBy(x: 0.0, y: source.size.height)
+                context.scaleBy(x: 1.0, y: -1.0)
+                let mp = CGPoint(x: boundingRect.origin.x * source.size.width + p.x * rectWidth, y: source.size.height - (boundingRect.origin.y * source.size.height + p.y * rectHeight))
+                context.fillEllipse(in: CGRect(origin: CGPoint(x: mp.x-2.0, y: mp.y-2), size: CGSize(width: 4.0, height: 4.0)))
+                NSString(format: "%d", i).draw(at: mp, withAttributes: textFontAttributes)
+                context.restoreGState()
             }
             let mappedPoints = points.map { CGPoint(x: boundingRect.origin.x * source.size.width + $0.x * rectWidth, y: boundingRect.origin.y * source.size.height + $0.y * rectHeight) }
             context.addLines(between: mappedPoints)
@@ -125,4 +139,5 @@ class FaceLandmarksDetector {
         UIGraphicsEndImageContext()
         return coloredImg
     }
+
 }
