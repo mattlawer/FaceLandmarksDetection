@@ -65,12 +65,7 @@ class FaceLandmarksDetector {
         func drawFeature(_ feature: VNFaceLandmarkRegion2D, color: CGColor, close: Bool = false) {
             context.setStrokeColor(color)
             context.setFillColor(color)
-            var points: [CGPoint] = []
-            for i in 0..<feature.pointCount {
-                let point = feature.point(at: i)
-                let p = CGPoint(x: CGFloat(point.x), y: CGFloat(point.y))
-                points.append(p)
-
+            for point in feature.normalizedPoints {
                 // Draw DEBUG numbers
                 let textFontAttributes = [
                     NSAttributedStringKey.font: UIFont.systemFont(ofSize: 16),
@@ -80,12 +75,14 @@ class FaceLandmarksDetector {
                 // rotate to draw numbers
                 context.translateBy(x: 0.0, y: source.size.height)
                 context.scaleBy(x: 1.0, y: -1.0)
-                let mp = CGPoint(x: boundingRect.origin.x * source.size.width + p.x * rectWidth, y: source.size.height - (boundingRect.origin.y * source.size.height + p.y * rectHeight))
+                let mp = CGPoint(x: boundingRect.origin.x * source.size.width + point.x * rectWidth, y: source.size.height - (boundingRect.origin.y * source.size.height + point.y * rectHeight))
                 context.fillEllipse(in: CGRect(origin: CGPoint(x: mp.x-2.0, y: mp.y-2), size: CGSize(width: 4.0, height: 4.0)))
-                NSString(format: "%d", i).draw(at: mp, withAttributes: textFontAttributes)
+                if let index = feature.normalizedPoints.index(of: point) {
+                    NSString(format: "%d", index).draw(at: mp, withAttributes: textFontAttributes)
+                }
                 context.restoreGState()
             }
-            let mappedPoints = points.map { CGPoint(x: boundingRect.origin.x * source.size.width + $0.x * rectWidth, y: boundingRect.origin.y * source.size.height + $0.y * rectHeight) }
+            let mappedPoints = feature.normalizedPoints.map { CGPoint(x: boundingRect.origin.x * source.size.width + $0.x * rectWidth, y: boundingRect.origin.y * source.size.height + $0.y * rectHeight) }
             context.addLines(between: mappedPoints)
             if close, let first = mappedPoints.first, let lats = mappedPoints.last {
                 context.addLines(between: [lats, first])
